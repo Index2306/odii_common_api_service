@@ -1,0 +1,16 @@
+FROM kekedaine/node-deployer:14-alpine-rdkafka as builder
+
+WORKDIR /app
+ADD package*.json /app/
+RUN npm install
+
+FROM kekedaine/node-deployer:14-alpine-rdkafka-puppeteer
+
+EXPOSE 3000
+WORKDIR /app
+COPY --from=builder /app/node_modules /app/node_modules
+ADD . /app
+RUN npm run build
+
+ENTRYPOINT [ "pm2-runtime", "ecosystem.config.js", "--only" ]
+CMD ["api_service"]
